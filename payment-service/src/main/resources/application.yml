@@ -1,0 +1,25 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: payment-service
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:us-east-1}
+
+app:
+  sns:
+    payment-completed-topic-arn: ${PAYMENT_COMPLETED_TOPIC_ARN}
+  sqs:
+    order-created-queue: ${ORDER_CREATED_QUEUE_NAME:order-created-queue}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

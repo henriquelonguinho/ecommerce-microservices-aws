@@ -1,0 +1,27 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: notification-service
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:us-east-1}
+
+app:
+  sqs:
+    payment-completed-queue: ${PAYMENT_COMPLETED_QUEUE_NAME:payment-completed-queue}
+  s3:
+    receipts-bucket: ${RECEIPTS_BUCKET_NAME:order-receipts-bucket}
+  ses:
+    from-email: ${SES_FROM_EMAIL:noreply@example.com}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
