@@ -1,0 +1,65 @@
+services:
+  localstack:
+    image: localstack/localstack:3.4
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sns,sqs,s3,ses
+      - DEFAULT_REGION=us-east-1
+    volumes:
+      - "./localstack:/etc/localstack/init/ready.d"
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal sns list-topics --region us-east-1 | grep ecommerce-order-created || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - ORDER_CREATED_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:ecommerce-order-created
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - PAYMENT_COMPLETED_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:ecommerce-payment-completed
+      - ORDER_CREATED_QUEUE_NAME=ecommerce-order-created-queue
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - PAYMENT_COMPLETED_QUEUE_NAME=ecommerce-payment-completed-queue
+      - RECEIPTS_BUCKET_NAME=ecommerce-receipts
+      - SES_FROM_EMAIL=noreply@example.com
+    depends_on:
+      localstack:
+        condition: service_healthy
