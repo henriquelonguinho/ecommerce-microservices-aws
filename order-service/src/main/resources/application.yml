@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: order-service
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:us-east-1}
+
+app:
+  sns:
+    order-created-topic-arn: ${ORDER_CREATED_TOPIC_ARN}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
